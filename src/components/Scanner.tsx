@@ -13,8 +13,14 @@ import {
   FormControlLabel,
   Stack,
   DialogContentText,
+  FormControl,
+  IconButton,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
 } from "@mui/material";
 import ErrorRoundedIcon from "@mui/icons-material/ErrorRounded";
+import CameraswitchRoundedIcon from "@mui/icons-material/CameraswitchRounded";
 import CircularProgress from "@mui/material/CircularProgress";
 
 
@@ -52,6 +58,49 @@ const Scanner: React.VFC<ScannerProps> = ({ handleScan, camera }) => {
     "loading" | "waiting" | "error"
   >("loading");
   const [errorDialogMessage, setErrorDialogMessage] = useState<string | null>(null);
+  const getDeviceIdFromStorage = () => {
+    const savedCurrentCameraDeviceId = localStorage.getItem(
+      "currentCameraDeviceId"
+    );
+    if (savedCurrentCameraDeviceId) {
+      return savedCurrentCameraDeviceId;
+    }
+    return "";
+  };
+  const [currentDeviceId, setCurrentDeviceId] = useState<string>(
+    getDeviceIdFromStorage()
+  );
+  const [deviceList, setDeviceList] = useState<{ deviceId: string; label: string; }[]>([]);
+  const [selectCameraModalOpen, setSelectCameraModalOpen] =
+    useState<boolean>(false);
+
+  const getCameraDeviceList = () => {
+    navigator.mediaDevices
+      .enumerateDevices()
+      .then((mediaDevices) =>
+        mediaDevices
+          .filter((device) => device.kind === "videoinput")
+          .map((device) => {
+            return {
+              label: device.label,
+              deviceId: device.deviceId,
+            };
+          })
+      )
+      .then((devices) => {
+        setDeviceList(devices);
+        if (currentDeviceId === "") {
+          setCurrentDeviceId(devices[0].deviceId);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  useEffect(() => {
+    getCameraDeviceList();
+  }, []);
 
   // out of memory の対策として、2 分 30 秒ごとに react-qr-reader を unmount して、直後に mount している
   // https://github.com/afes-website/cappuccino-app/blob/d0201aa5506e6b3aa7c3cc887171d83b0e773b18/src/components/QRScanner.tsx#L146
@@ -94,11 +143,43 @@ const Scanner: React.VFC<ScannerProps> = ({ handleScan, camera }) => {
       setErrorDialogMessage(reason);
     }
   };
-
+  const changeCamera = (event: SelectChangeEvent) => {
+    const newCurrentDevice = deviceList.find((v) => {
+      if (v.deviceId === event.target.value) {
+        return v;
+      }
+    });
+    if (newCurrentDevice) {
+      localStorage.setItem("currentCameraDeviceId", newCurrentDevice.deviceId);
+      setCurrentDeviceId(newCurrentDevice.deviceId);
+      setRefreshQrReader(false);
+    }
+  };
+  const onClickChangeCameraIcon = () => {
+    setScannerStatus("loading");
+    getCameraDeviceList();
+    if (deviceList.length === 2) {
+      const newCurrentDevice = deviceList.find((v) => {
+        if (v.deviceId !== currentDeviceId) {
+          return v;
+        }
+      });
+      if (newCurrentDevice) {
+        localStorage.setItem(
+          "currentCameraDeviceId",
+          newCurrentDevice.deviceId
+        );
+        setCurrentDeviceId(newCurrentDevice.deviceId);
+        setRefreshQrReader(false);
+      }
+    } else {
+      setScannerStatus("waiting");
+      setSelectCameraModalOpen(true);
+    }
+  };
 
   type MessageDialogProps = {
     open: boolean;
-    title?: string;
     message: string;
     onClose: () => void;
   };
@@ -113,7 +194,7 @@ const Scanner: React.VFC<ScannerProps> = ({ handleScan, camera }) => {
           }}
         >
           <ErrorRoundedIcon />
-          {props.title}
+          カメラ起動失敗
         </DialogTitle>
         <DialogContent>
           <DialogContentText>{props.message}</DialogContentText>
@@ -171,23 +252,56 @@ const Scanner: React.VFC<ScannerProps> = ({ handleScan, camera }) => {
               }}
               scanDelay={1}
               constraints={{
-                facingMode: "user",
+                deviceId: currentDeviceId
               }}
               className="qrcode"
             />
+            <IconButton
+              onClick={onClickChangeCameraIcon}
+              sx={{ position: "absolute", color: "white", top: 0, left: 0 }}
+            >
+              <CameraswitchRoundedIcon />
+            </IconButton>
+            <Dialog
+              open={selectCameraModalOpen}
+              onClose={() => setSelectCameraModalOpen(false)}
+            >
+              <DialogTitle>カメラ切り替え</DialogTitle>
+              <DialogContent>
+                <FormControl sx={{ m: 1, minWidth: 200 }}>
+                  <Select
+                    size="small"
+                    value={currentDeviceId}
+                    onChange={changeCamera}
+                  >
+                    {deviceList.map((v) => {
+                      return (
+                        <MenuItem value={v.deviceId} key={v.deviceId}>
+                          {v.label}
+                        </MenuItem>
+                      );
+                    })}
+                  </Select>
+                </FormControl>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setSelectCameraModalOpen(false)}>
+                  閉じる
+                </Button>
+              </DialogActions>
+            </Dialog>
           </div>
         )}
         {(!refreshQrReader || scannerStatus === "loading") && <Loading />}
       </Box>
       <MessageDialog
         open={errorDialogMessage !== null}
-        title="カメラ起動失敗"
         message={errorDialogMessage as string}
         onClose={() => {
           setErrorDialogMessage(null);
         }}
       />
-    </Stack>
+    </Stack >
   );
 };
 
