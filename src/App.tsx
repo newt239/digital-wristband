@@ -1,25 +1,62 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { createTheme, PaletteMode, ThemeProvider } from '@mui/material';
+import Body from './Body';
+import { grey, blue } from '@mui/material/colors';
+
+export const ColorModeContext = React.createContext({ toggleColorMode: () => { } });
 
 function App() {
+  const [mode, setMode] = React.useState<PaletteMode>('light');
+  const colorMode = React.useMemo(
+    () => ({
+      // The dark mode switch would invoke this method
+      toggleColorMode: () => {
+        console.log("hey")
+        setMode((prevMode: PaletteMode) =>
+          prevMode === 'light' ? 'dark' : 'light',
+        );
+      },
+    }),
+    [],
+  );
+  const theme = React.useMemo(() => createTheme({
+    palette: {
+      mode,
+      primary: blue,
+      ...(mode === "light" ? {
+        text: {
+          primary: grey[900],
+          secondary: grey[800],
+        },
+      }
+        : {
+          background: {
+            default: "#121212",
+          },
+          text: {
+            primary: '#fff',
+            secondary: grey[500],
+          },
+        })
+    },
+    components: {
+      MuiCssBaseline: {
+        styleOverrides: `
+        #root {
+          backgroundColor: ${mode === "light" ? "#212121" : "white"}
+          minHeight: 100vh;
+        }
+      `,
+      },
+    }
+  }), [mode]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ColorModeContext.Provider value={colorMode}>
+      <ThemeProvider theme={theme}>
+        <Body />
+      </ThemeProvider>
+    </ColorModeContext.Provider>
   );
 }
 
