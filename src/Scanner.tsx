@@ -9,8 +9,6 @@ import {
   DialogActions,
   Button,
   DialogTitle,
-  Switch,
-  FormControlLabel,
   Stack,
   DialogContentText,
   FormControl,
@@ -98,15 +96,12 @@ const Scanner: React.VFC<ScannerProps> = ({ handleScan, camera }) => {
       });
   };
 
-  useEffect(() => {
-    getCameraDeviceList();
-  }, []);
-
   // out of memory の対策として、2 分 30 秒ごとに react-qr-reader を unmount して、直後に mount している
   // https://github.com/afes-website/cappuccino-app/blob/d0201aa5506e6b3aa7c3cc887171d83b0e773b18/src/components/QRScanner.tsx#L146
   const [refreshQrReader, setRefreshQrReader] = useState(true);
   const interval = isAndroid() ? 30 * 1000 : 2.5 * 60 * 1000;
   useEffect(() => {
+    getCameraDeviceList();
     const intervalId = setInterval(() => {
       setScannerStatus("loading");
       setRefreshQrReader(false);
@@ -143,6 +138,7 @@ const Scanner: React.VFC<ScannerProps> = ({ handleScan, camera }) => {
       setErrorDialogMessage(reason);
     }
   };
+
   const changeCamera = (event: SelectChangeEvent) => {
     const newCurrentDevice = deviceList.find((v) => {
       if (v.deviceId === event.target.value) {
@@ -155,6 +151,7 @@ const Scanner: React.VFC<ScannerProps> = ({ handleScan, camera }) => {
       setRefreshQrReader(false);
     }
   };
+
   const onClickChangeCameraIcon = () => {
     setScannerStatus("loading");
     getCameraDeviceList();
@@ -183,6 +180,7 @@ const Scanner: React.VFC<ScannerProps> = ({ handleScan, camera }) => {
     message: string;
     onClose: () => void;
   };
+
   const MessageDialog: React.VFC<MessageDialogProps> = (props) => {
     return (
       <Dialog open={props.open} onClose={props.onClose}>

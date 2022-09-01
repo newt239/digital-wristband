@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Container, Grid, Typography, Alert, Box, Collapse, IconButton, useTheme, Button } from '@mui/material';
-import Scanner from './components/Scanner';
+import Scanner from './Scanner';
 import QRCode from "react-qr-code";
 import { Result } from '@zxing/library';
 
@@ -9,33 +9,33 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
 import { ColorModeContext } from './App';
 
-const guestIdValidation = (guest_id: string) => {
-  if (guest_id.length === 10) {
-    if (guest_id.startsWith("G")) {
-      const guestIdNumberList = Array.from(guest_id.slice(1)).map((nstr) =>
-        Number(nstr)
-      );
-      const sumStr = String(
-        guestIdNumberList.slice(0, 8).reduce((sum, n) => {
-          return sum + n;
-        }, 0)
-      );
-      const onesPlaceOfSum = Number(sumStr[sumStr.length - 1]);
-      const checkSum = guestIdNumberList[guestIdNumberList.length - 1];
-      if (onesPlaceOfSum === checkSum) {
-        return true;
-      }
-    }
-  }
-  return false;
-};
-
-function Body() {
+const Body: React.VFC = () => {
   const theme = useTheme();
   const colorMode = React.useContext(ColorModeContext);
   const [camera, setCamera] = useState<"waiting" | "success" | "error">("waiting");
   const [invalid, setInvalid] = useState<boolean>(false);
   const [guestId, setGuestId] = useState<string | null>(localStorage.getItem("guest_id"));
+
+  const guestIdValidation = (guest_id: string) => {
+    if (guest_id.length === 10) {
+      if (guest_id.startsWith("G")) {
+        const guestIdNumberList = Array.from(guest_id.slice(1)).map((nstr) =>
+          Number(nstr)
+        );
+        const sumStr = String(
+          guestIdNumberList.slice(0, 8).reduce((sum, n) => {
+            return sum + n;
+          }, 0)
+        );
+        const onesPlaceOfSum = Number(sumStr[sumStr.length - 1]);
+        const checkSum = guestIdNumberList[guestIdNumberList.length - 1];
+        if (onesPlaceOfSum === checkSum) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
 
   const handleScan = (data: Result) => {
     const text = data.getText();
