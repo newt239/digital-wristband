@@ -1,6 +1,7 @@
 {
   "short_name": "Digital Wristband",
   "name": "Gateway Digital Wristband",
+  "description": "栄東祭2022滞在状況記録システム デジタルリストバンド",
   "icons": [
     {
       "src": "icon-192x192.png",
@@ -13,7 +14,8 @@
       "sizes": "512x512"
     }
   ],
-  "start_url": ".",
+  "start_url": "./?utm_source=pwa",
+  "scope": "/",
   "display": "standalone",
   "theme_color": "#2196F3",
   "background_color": "#2196F3"
