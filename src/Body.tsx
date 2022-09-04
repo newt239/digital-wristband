@@ -59,7 +59,7 @@ const Body: React.VFC = () => {
           </Typography>
         </Grid>
         <Grid item xs={12}>
-          <Collapse orientation="vertical" in={camera === "waiting"} collapsedSize={0} timeout={1000} sx={{ my: 2 }}>
+          <Collapse orientation="vertical" in={camera === "waiting"} collapsedSize={0} timeout={1000}>
             <Alert severity={invalid ? "error" : "info"}>
               {invalid && "スキャン結果がゲストIDの形式と一致しません。再度"}
               お手元のリストバンドをスキャンしてください。
@@ -90,7 +90,7 @@ const Body: React.VFC = () => {
             }}>
               {guestId?.slice(1, 4)} {guestId?.slice(4, 7)} {guestId?.slice(7, 10)}
             </Typography>
-            <Box sx={{ my: 2 }}>
+            <Box sx={{ mt: 2, mb: "50vh" }}>
               <Button variant="text" startIcon={<ReplayRoundedIcon />} onClick={() => {
                 setInvalid(false);
                 setCamera("waiting");
@@ -105,6 +105,7 @@ const Body: React.VFC = () => {
         bottom: 0,
         left: 0,
         right: 0,
+        p: 1,
         textAlign: "center",
         bgcolor: 'background.default',
         color: 'text.primary',
