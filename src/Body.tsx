@@ -14,7 +14,7 @@ const Body: React.VFC = () => {
   const colorMode = React.useContext(ColorModeContext);
   const [camera, setCamera] = useState<"waiting" | "success" | "error">("waiting");
   const [invalid, setInvalid] = useState<boolean>(false);
-  const [guestId, setGuestId] = useState<string | null>(localStorage.getItem("guest_id"));
+  const [guestId, setGuestId] = useState<string>(localStorage.getItem("guest_id") || "example");
 
   const guestIdValidation = (guest_id: string) => {
     if (guest_id.length === 10) {
@@ -39,12 +39,13 @@ const Body: React.VFC = () => {
 
   const handleScan = (data: Result) => {
     const text = data.getText();
-    setCamera("success");
+    console.log(text);
     if (guestIdValidation(text)) {
+      setCamera("success");
       setGuestId(text);
       localStorage.setItem("guest_id", text);
     } else {
-      setInvalid(false);
+      setInvalid(true);
     }
   };
 
@@ -59,7 +60,7 @@ const Body: React.VFC = () => {
         </Grid>
         <Grid item xs={12}>
           <Collapse orientation="vertical" in={camera === "waiting"} collapsedSize={0} timeout={1000} sx={{ my: 2 }}>
-            <Alert severity="info">
+            <Alert severity={invalid ? "error" : "info"}>
               {invalid && "スキャン結果がゲストIDの形式と一致しません。再度"}
               お手元のリストバンドをスキャンしてください。
             </Alert>
@@ -71,16 +72,14 @@ const Body: React.VFC = () => {
             <Alert severity="info">
               展示入退室時に以下のQRコードをご提示ください。
             </Alert>
-            {guestId && (
-              <Box sx={{ textAlign: "center", m: 2 }}>
-                <QRCode
-                  value={guestId}
-                  level='H'
-                  bgColor={theme.palette.mode === "dark" ? "#212121" : "white"}
-                  fgColor={theme.palette.mode === "dark" ? "white" : "black"}
-                />
-              </Box>
-            )}
+            <Box sx={{ textAlign: "center", m: 2 }}>
+              <QRCode
+                value={guestId}
+                level='H'
+                bgColor={theme.palette.mode === "dark" ? "#212121" : "white"}
+                fgColor={theme.palette.mode === "dark" ? "white" : "black"}
+              />
+            </Box>
             <Typography variant="h2" sx={{
               fontSize: "2rem",
               fontFamily: "Montserrat",
@@ -93,6 +92,7 @@ const Body: React.VFC = () => {
             </Typography>
             <Box sx={{ my: 2 }}>
               <Button variant="text" startIcon={<ReplayRoundedIcon />} onClick={() => {
+                setInvalid(false);
                 setCamera("waiting");
                 localStorage.removeItem("guest_id");
               }}>最初からやり直す</Button>

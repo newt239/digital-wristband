@@ -21,9 +21,7 @@ import ErrorRoundedIcon from "@mui/icons-material/ErrorRounded";
 import CameraswitchRoundedIcon from "@mui/icons-material/CameraswitchRounded";
 import CircularProgress from "@mui/material/CircularProgress";
 
-
-// https://typescriptbook.jp/reference/statements/unknown
-export const isDOMException = (value: unknown): value is DOMException => {
+const isDOMException = (value: unknown): value is DOMException => {
   if (typeof value !== "object" || value === null) {
     return false;
   }
@@ -37,7 +35,7 @@ export const isDOMException = (value: unknown): value is DOMException => {
   return true;
 };
 
-export const isAndroid = () => {
+const isAndroid = () => {
   if (navigator.userAgent.match(/Android/)) {
     return true;
   } else {
@@ -45,6 +43,15 @@ export const isAndroid = () => {
   }
 };
 
+const getDeviceIdFromStorage = () => {
+  const savedCurrentCameraDeviceId = localStorage.getItem(
+    "currentCameraDeviceId"
+  );
+  if (savedCurrentCameraDeviceId) {
+    return savedCurrentCameraDeviceId;
+  }
+  return "";
+};
 
 type ScannerProps = {
   handleScan: (text: Result) => void;
@@ -56,15 +63,6 @@ const Scanner: React.VFC<ScannerProps> = ({ handleScan, camera }) => {
     "loading" | "waiting" | "error"
   >("loading");
   const [errorDialogMessage, setErrorDialogMessage] = useState<string | null>(null);
-  const getDeviceIdFromStorage = () => {
-    const savedCurrentCameraDeviceId = localStorage.getItem(
-      "currentCameraDeviceId"
-    );
-    if (savedCurrentCameraDeviceId) {
-      return savedCurrentCameraDeviceId;
-    }
-    return "";
-  };
   const [currentDeviceId, setCurrentDeviceId] = useState<string>(
     getDeviceIdFromStorage()
   );
@@ -96,10 +94,10 @@ const Scanner: React.VFC<ScannerProps> = ({ handleScan, camera }) => {
       });
   };
 
-  // out of memory の対策として、2 分 30 秒ごとに react-qr-reader を unmount して、直後に mount している
+  // out of memory の対策として、2 分ごとに react-qr-reader を unmount して、直後に mount している
   // https://github.com/afes-website/cappuccino-app/blob/d0201aa5506e6b3aa7c3cc887171d83b0e773b18/src/components/QRScanner.tsx#L146
   const [refreshQrReader, setRefreshQrReader] = useState(true);
-  const interval = isAndroid() ? 30 * 1000 : 2.5 * 60 * 1000;
+  const interval = isAndroid() ? 30 * 1000 : 2 * 60 * 1000;
   useEffect(() => {
     getCameraDeviceList();
     const intervalId = setInterval(() => {
@@ -132,6 +130,7 @@ const Scanner: React.VFC<ScannerProps> = ({ handleScan, camera }) => {
           reason = "この端末には利用可能なカメラがありません。";
           break;
         default:
+          console.log(err);
           reason = "原因不明のエラーです。" + `[${err.name}] ${err.message}`;
           break;
       }
@@ -243,12 +242,13 @@ const Scanner: React.VFC<ScannerProps> = ({ handleScan, camera }) => {
               onResult={(result, error) => {
                 if (result) {
                   handleScan(result);
+                  return;
                 }
-                if (error) {
+                if (!!error) {
                   handleError(error);
                 }
               }}
-              scanDelay={1}
+              scanDelay={500}
               constraints={{
                 deviceId: currentDeviceId
               }}
