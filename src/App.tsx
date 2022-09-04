@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactGA from "react-ga4";
 import { createTheme, PaletteMode, ThemeProvider } from '@mui/material';
 import Body from './Body';
 import { grey, blue } from '@mui/material/colors';
@@ -6,6 +7,8 @@ import { grey, blue } from '@mui/material/colors';
 export const ColorModeContext = React.createContext({ toggleColorMode: () => { } });
 
 const App: React.VFC = () => {
+  ReactGA.initialize("G-PLT9BBVPL8");
+  ReactGA.send("pageview");
   const [mode, setMode] = React.useState<PaletteMode>('light');
   const colorMode = React.useMemo(
     () => ({

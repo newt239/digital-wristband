@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { Container, Grid, Typography, Alert, Box, Collapse, IconButton, useTheme, Button } from '@mui/material';
-import Scanner from './Scanner';
+import ReactGA from "react-ga4";
 import QRCode from "react-qr-code";
 import { Result } from '@zxing/library';
 
+import { Container, Grid, Typography, Alert, Box, Collapse, IconButton, useTheme, Button } from '@mui/material';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
+
 import { ColorModeContext } from './App';
+import Scanner from './Scanner';
 
 const Body: React.VFC = () => {
   const theme = useTheme();
@@ -44,8 +46,18 @@ const Body: React.VFC = () => {
       setCamera("success");
       setGuestId(text);
       localStorage.setItem("guest_id", text);
+      ReactGA.event({
+        category: "scan_qr",
+        action: "guest_id",
+        label: text,
+      });
     } else {
       setInvalid(true);
+      ReactGA.event({
+        category: "scan_qr",
+        action: "no_guest_id",
+        label: text,
+      });
     }
   };
 
