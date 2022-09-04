@@ -248,7 +248,7 @@ const Scanner: React.VFC<ScannerProps> = ({ handleScan, camera }) => {
                   handleError(error);
                 }
               }}
-              scanDelay={500}
+              scanDelay={1}
               constraints={{
                 deviceId: currentDeviceId
               }}
