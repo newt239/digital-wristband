@@ -116,7 +116,7 @@ const Scanner: React.VFC<ScannerProps> = ({ handleScan, camera }) => {
   const handleError = (err: unknown) => {
     setScannerStatus("error");
     let reason: string;
-    if (isDOMException(err)) {
+    if (isDOMException(err) && err.message !== "Dimensions could be not found.") {
       switch (err.name) {
         case "NotReadableError":
           reason =
@@ -191,7 +191,7 @@ const Scanner: React.VFC<ScannerProps> = ({ handleScan, camera }) => {
           }}
         >
           <ErrorRoundedIcon />
-          カメラ起動失敗
+          スキャン失敗
         </DialogTitle>
         <DialogContent>
           <DialogContentText>{props.message}</DialogContentText>
